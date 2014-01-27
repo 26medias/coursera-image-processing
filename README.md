@@ -6,6 +6,10 @@ Since I have no professional use for Mathlab, I will be using client-side Javasc
 
 Feel free to use, fork and share the code.
 
+## Demo ##
+[http://26medias.github.io/coursera-image-processing/build/index.html](http://26medias.github.io/coursera-image-processing/build/index.html)
+
+
 ## Structure ##
 `/bin` Build script (Require NodeJS)
 

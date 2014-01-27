@@ -67,10 +67,10 @@
 
 <div class="panel panel-default">
 	<div class="panel-heading">
-		<h3 class="panel-title">Week 1 - Intensity</h3>
+		<h3 class="panel-title">Week 1 - Average</h3>
 	</div>
 	<div class="panel-body">
-		<p>Write a computer program capable of reducing the number of intensity levels in an image from 256 to 2, in integer powers of 2. The desired number of intensity levels needs to be a variable input to your program.</p>
+		<p>Using any programming language you feel comfortable with (it is though recommended to use the provided free Matlab), load an image and then perform a simple spatial 3x3 average of image pixels. In other words, replace the value of every pixel by the average of the values in its 3x3 neighborhood. If the pixel is located at (0,0), this means averaging the values of the pixels at the positions (-1,1), (0,1), (1,1), (-1,0), (0,0), (1,0), (-1,-1), (0,-1), and (1,-1). Be careful with pixels at the image boundaries. Repeat the process for a 10x10 neighborhood and again for a 20x20 neighborhood. Observe what happens to the image (we will discuss this in more details in the very near future, about week 3).</p>
 		<div id="image-container"></div>
 		<!-- Canvas will be created here by imageProcessing() -->
 	</div>
@@ -79,11 +79,11 @@
 			<tbody>
 				<tr>
 					<td>
-						<label for="">Intensity: </label>
+						<label for="">Average Size: </label>
 					</td>
 					<td>
 						<div class="input-group">
-							<input type="text" placeholder="Intensity (integer,  [2-255])" style="width: 200px;" class="form-control" value="8" id="val-input">
+							<input type="text" placeholder="Intensity (integer,  [2-20])" style="width: 200px;" class="form-control" value="3" id="val-input">
 							<span class="input-group-btn">
 								<button class="btn btn-danger" type="button" id="btn-apply">Apply</button>
 							</span>
@@ -112,7 +112,7 @@
 		var image = new imageProcessing($('#image-container'), {
 			src:	"../public/canvas.png",
 			onBuild:	function() {
-				image.grayscale();
+				
 			}
 		});
 		
@@ -122,32 +122,81 @@
 			// Reset the image, to remove any previous effect
 			image.reset(function() {
 				
-				// Grayscale the image
-				image.grayscale();
-				
 				// Get the value, convert to an numeric value, and floor it (17.5->17, 11.9->11)
 				var value = Math.floor($('#val-input').val()*1);
 				
 				// Check the value
-				if (!value || value < 2 || value > 255) {
-					alert("Please enter an intensity between 2 and 255");
+				if (!value || value < 2 || value > 20) {
+					alert("Please enter an intensity between 2 and 20");
 					return false;
+				}
+				
+				
+				// Make a copy of the current imageData, to get the original pixel colors, not the modified ones
+				var imageData 		= _.extend({},image.imageData);
+				
+				// Subroutine to get the average color of an area of size [w;h] centered at [x;y]
+				var getAveragePx 	= function(x, y, w, h) {
+					var i, j;
+					var rgbac = {
+						r:	0,	// Red
+						g:	0,	// Green
+						b:	0,	// Blue
+						a:	0,	// Alpha
+						c:	0	// Count (to divide nad get the average)
+					};
+					
+					// Check if the current size is odd or even, and generate the start and end coordinates of the area: [-1;-1], [-1; 1], ...
+					if (w%2==0) {
+						var _w = [-w/2,w/2];
+					} else {
+						var _w = [(-w+1)/2,(w-1)/2];
+					}
+					if (h%2==0) {
+						var _h = [-h/2,h/2];
+					} else {
+						var _h = [(-h+1)/2,(h-1)/2];
+					}
+					
+					for (i=_w[0];i<_w[1];i++) {
+						for (j=_h[0];j<_h[1];j++) {
+							
+							// Get the position of the RGBA info in the imageData
+							var _x = Math.max(0, Math.min(x+i, imageData.width));
+							var _y = Math.max(0, Math.min(y+j, imageData.height));
+							var index = (_x + _y * imageData.width) * 4;
+							
+							// Increment the values
+							rgbac.r += imageData.data[index+0];
+							rgbac.g += imageData.data[index+1];
+							rgbac.b += imageData.data[index+2];
+							rgbac.a += imageData.data[index+3];
+							rgbac.c ++;
+						}
+					}
+					
+					// Average the values
+					rgbac.r /= rgbac.c;
+					rgbac.g /= rgbac.c;
+					rgbac.b /= rgbac.c;
+					rgbac.a /= rgbac.c;
+					
+					// Return the RGBA object
+					return rgbac;
 				}
 				
 				// Scan the image, pixel by pixel
 				image.scan(function(x, y, rgba) {
 					
-					var transform = function(v) {
-						var m = Math.round(256/value);
-						return Math.floor(v/m)*m;
-					}
+					// Get the average RGBA colors at that location
+					var avg = getAveragePx(x, y, value, value);
 					
 					// Change the intensity level
 					image.setPixels(x, y, {
-						r:	transform(rgba.r),
-						g:	transform(rgba.g),
-						b:	transform(rgba.b),
-						a:	rgba.a	// We do not change the Alpha
+						r:	avg.r,
+						g:	avg.g,
+						b:	avg.b,
+						a:	avg.a
 					});
 				});
 				image.apply();
@@ -158,9 +207,7 @@
 		// When the user clicks on the "reset" button
 		$('#btn-reset').click(function() {
 			// We use the reset() function in our imageProcessing instance.
-			image.reset(function() {
-				image.grayscale();
-			});
+			image.reset(function() {});
 		});
 	});
 </script>

@@ -4,6 +4,14 @@
 		"01-intensity.html": {
 			"title":	"Week1: Intensity - Image and video processing: From Mars to Hollywood with a stop at the hospital",
 			"filename":	"week1/01.html"
+		},
+		"02-avg.html": {
+			"title":	"Week1: Intensity - Image and video processing: From Mars to Hollywood with a stop at the hospital",
+			"filename":	"week1/02.html"
+		},
+		"04-pixelize.html": {
+			"title":	"Week1: Intensity - Image and video processing: From Mars to Hollywood with a stop at the hospital",
+			"filename":	"week1/04.html"
 		}
 	},
 	"template":		"main.html",
